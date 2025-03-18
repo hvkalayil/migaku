@@ -6,3 +6,12 @@ services:
     ports:
       - "1000:3000"
     restart: unless-stopped
+
+  learn.io:
+    image: docker:latest
+    volumes:
+      - ./projects/learn.io:/learn.io
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /learn.io
+    command: sh -c "docker compose up"
+    restart: unless-stopped

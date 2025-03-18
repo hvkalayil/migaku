@@ -2,7 +2,6 @@
 
 CSV_FILE="projects.csv"
 
-# Create 'projects' folder if it doesn't exist
 mkdir -p projects
 
 tail -n +2 "$CSV_FILE" | while IFS=',' read -r _ GIT_URL WEB_URL LOCAL_URL; do
