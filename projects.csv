@@ -1,3 +1,4 @@
 name,git,url,local,env
 Portfolio,https://github.com/hvkalayil/hvkalayil.github.io.git,https://portfolio.hvk.life,http://localhost:1000
-Learn.io,https://github.com/hvkalayil/learn.io.git,https://learn.io.hvk.life,http://localhost:1001 (frontend) \n\t\t http://localhost:1002 (backend),.frontend.env
+Learn.io,https://github.com/hvkalayil/learn.io.git,https://learn.io.hvk.life,http://localhost:1001 (frontend) | http://localhost:1002 (backend) | http://localhost:1003 (db-manager),.frontend.env;.api.env;.db.env
+Sens.ai - FE,https://github.com/hvkalayil/sens.ai-frontend.git,https://sens.ai.hvk.life,http://localhost:1004,.env
