@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
 
   # PROJECT 3 - Sens.ai
-  sens.ai:
+  sens.ai-frontend:
     build:
       context: projects/sens.ai-frontend
       dockerfile: Dockerfile
@@ -48,4 +48,14 @@ services:
       - "1004:80"
     env_file:
       - projects/sens.ai-frontend/.env
+    restart: unless-stopped
+  
+  sens.ai-backend:
+    build:
+      context: projects/sens.ai-backend
+      dockerfile: Dockerfile
+    ports:
+      - "1005:3000"
+    env_file:
+      - projects/sens.ai-backend/.env
     restart: unless-stopped
