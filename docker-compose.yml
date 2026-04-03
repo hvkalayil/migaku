@@ -30,13 +30,12 @@ services:
     restart: unless-stopped
 
   learnio-db:
-    build:
-      context: projects/learn.io/apps/db
-      dockerfile: Dockerfile
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: learnio-db
     ports:
-      - "1003:4001"
-    env_file:
-      - projects/learn.io/.db.env
+      - "1003:8090"
+    volumes:
+      - ./data/learnio:/pb_data
     restart: unless-stopped
 
   # PROJECT 3 - Sens.ai
@@ -49,7 +48,7 @@ services:
     env_file:
       - projects/sens.ai-frontend/.env
     restart: unless-stopped
-  
+
   sens.ai-backend:
     build:
       context: projects/sens.ai-backend
