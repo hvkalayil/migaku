@@ -1,6 +1,8 @@
 #!/bin/bash
 
-CSV_FILE="projects.csv"
+set -e
+
+JSON_FILE="projects.json"
 
 mkdir -p projects
 
@@ -9,43 +11,96 @@ read -s -p "Enter encryption key: " ENCRYPTION_KEY
 echo
 
 # 🧙‍♂️ Summoning rune-keeper
-if [ -d "rune-keeper" ]; then
-    echo -e "\t\e[1;34mUpdating Rune Keeper...\e[0m"
-    cd rune-keeper && git pull --quiet && cd ../
+if [ -d "rune-keeper/.git" ]; then
+  echo -e "\t\e[1;34mUpdating Rune Keeper...\e[0m"
+
+  (
+    cd rune-keeper \
+      && git pull --quiet
+  )
 else
-    echo -e "\t\e[1;32mCloning Rune Keeper...\e[0m"
-    git clone --quiet https://github.com/hvkalayil/rune-keeper.git
+  echo -e "\t\e[1;32mCloning Rune Keeper...\e[0m"
+
+  git clone --quiet https://github.com/hvkalayil/rune-keeper.git
 fi
 
-# 🔁 Loop through the CSV file
-tail -n +2 "$CSV_FILE" | while IFS=',' read -r _ GIT_URL WEB_URL LOCAL_URL ENV_FILES; do
-    echo -e "\e[1m\e[42m Cloning/Updating $(basename "$GIT_URL" .git) \e[0m"
-    echo -e "\t\e[1mWeb: \e[0m$WEB_URL"
-    echo -e "\t\e[1mLocal: \e[0m$LOCAL_URL"
+# 🔁 Loop through JSON
+jq -c '.[]' "$JSON_FILE" | while read -r PROJECT; do
 
-    # 🛠️ Create the project
-    REPO_NAME=$(basename "$GIT_URL" .git)
-    if [ -d "projects/$REPO_NAME/.git" ]; then
-        echo -e "\t\e[1;34mUpdating existing repository...\e[0m"
-        (cd "projects/$REPO_NAME" && git pull --quiet)
-    else
-        echo -e "\t\e[1;32mCloning new repository...\e[0m"
-        (cd projects && git clone --quiet "$GIT_URL")
-    fi
+  # Remove possible CRLF characters
+  PROJECT=$(echo "$PROJECT" | tr -d '\r')
 
-    # 🗝️ Decrypt .env files if listed in CSV
-    if [ -n "$ENV_FILES" ]; then
-        echo -e "\t\e[1;35mDecrypting environment files...\e[0m"
-        for ENV_FILE in $(echo "$ENV_FILES" | tr ';' ' '); do
-            ENCRYPTED_FILE="rune-keeper/$REPO_NAME/$ENV_FILE.enc"
-            TARGET_FILE="projects/$REPO_NAME/$ENV_FILE"
-            if [ -f "$ENCRYPTED_FILE" ]; then
-                openssl enc -aes-256-cbc -d -pbkdf2 -in "$ENCRYPTED_FILE" -out "$TARGET_FILE" -k "$ENCRYPTION_KEY"
-                echo -e "\t\e[1;32mDecrypted $ENV_FILE\e[0m"
-            else
-                echo -e "\t\e[1;31mEncrypted file $ENV_FILE.enc not found\e[0m"
-            fi
-        done
-    fi
+  GIT_URL=$(echo "$PROJECT" | jq -r '.git_url')
+  WEB_URL=$(echo "$PROJECT" | jq -r '.web_url')
+  LOCAL_URL=$(echo "$PROJECT" | jq -r '.local_url')
+
+  REPO_NAME=$(basename "$GIT_URL" .git)
+
+  echo
+  echo -e "\e[1m\e[42m Cloning/Updating $REPO_NAME \e[0m"
+  echo -e "\t\e[1mWeb:\e[0m   $WEB_URL"
+  echo -e "\t\e[1mLocal:\e[0m $LOCAL_URL"
+
+  # 📦 Clone or update repo
+  if [ -d "projects/$REPO_NAME/.git" ]; then
+
+    echo -e "\t\e[1;34mUpdating existing repository...\e[0m"
+
+    (
+      cd "projects/$REPO_NAME" \
+        && git pull --quiet
+    )
+
+  else
+
+    echo -e "\t\e[1;32mCloning new repository...\e[0m"
+
+    (
+      cd projects \
+        && git clone --quiet "$GIT_URL"
+    )
+
+  fi
+
+  # 🗝️ Decrypt env files
+  if echo "$PROJECT" | jq -e '.env_files' > /dev/null 2>&1; then
+
+    echo -e "\t\e[1;35mDecrypting environment files...\e[0m"
+
+    echo "$PROJECT" \
+      | jq -r '.env_files[]?' \
+      | tr -d '\r' \
+      | while read -r ENV_FILE; do
+
+        [ -z "$ENV_FILE" ] && continue
+
+        ENCRYPTED_FILE="rune-keeper/$REPO_NAME/$ENV_FILE.enc"
+        TARGET_FILE="projects/$REPO_NAME/$ENV_FILE.env"
+
+        echo -e "\t\e[36mEncrypted:\e[0m $ENCRYPTED_FILE"
+        echo -e "\t\e[36mTarget:\e[0m    $TARGET_FILE"
+
+        if [ -f "$ENCRYPTED_FILE" ]; then
+
+          mkdir -p "$(dirname "$TARGET_FILE")"
+
+          openssl enc -aes-256-cbc -d -pbkdf2 \
+            -in "$ENCRYPTED_FILE" \
+            -out "$TARGET_FILE" \
+            -k "$ENCRYPTION_KEY"
+
+          echo -e "\t\e[1;32m✓ Decrypted $ENV_FILE\e[0m"
+
+        else
+
+          echo -e "\t\e[1;31m✗ Missing encrypted file: $ENCRYPTED_FILE\e[0m"
+
+        fi
+
+      done
+  fi
 
 done
+
+echo
+echo -e "\e[1;32mAll projects processed successfully.\e[0m"

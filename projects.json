@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Portfolio",
+    "git_url": "https://github.com/hvkalayil/hvkalayil.github.io.git",
+    "web_url": "https://portfolio.hvk.life",
+    "local_url": "http://localhost:1000",
+    "env_files": []
+  },
+  {
+    "name": "Learn.io",
+    "git_url": "https://github.com/hvkalayil/learn.io.git",
+    "web_url": "https://learn.io.hvk.life",
+    "local_url": "http://localhost:1001 (frontend) | http://localhost:1002 (backend) | http://localhost:1003 (db)",
+    "env_files": [
+      ".frontend",
+      ".api"
+    ]
+  },
+  {
+    "name": "Sens.ai",
+    "git_url": "https://github.com/hvkalayil/sens.ai.git",
+    "web_url": "https://sens.ai.hvk.life",
+    "local_url": "http://localhost:1004(frontend) | http://localhost:1005 (backend) | http://localhost:1006 (db)",
+    "env_files": [
+      "apps/fe/",
+      "apps/be/"
+    ]
+  }
+]
